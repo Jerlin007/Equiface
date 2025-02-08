@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facial Symmetry Analysis</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="web3-header">
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="/static/images/logo.png" alt="Facial Symmetry AI" class="web3-logo">
+                <div class="logo-glow"></div>
+            </div>
+            
+            <nav class="web3-nav">
+                <div class="hamburger-menu">
+                    <span class="hamburger-line top"></span>
+                    <span class="hamburger-line middle"></span>
+                    <span class="hamburger-line bottom"></span>
+                </div>
+                <ul class="web3-menu">
+                    <li class="menu-item">
+                        <a href="#tips" class="web3-link">
+                            <span class="link-text">Tips</span>
+                            <span class="link-underline"></span>
+                            <span class="link-glow"></span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="#faq" class="web3-link">
+                            <span class="link-text">FAQ</span>
+                            <span class="link-underline"></span>
+                            <span class="link-glow"></span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="header-background">
+            <div class="grid-lines"></div>
+            <div class="particles-container">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+            </div>
+        </div>
+    </header>
+    <div id="app">
+
+        <p>Select a mode to analyze your facial symmetry:</p>
+        <select id="modeSelect">
+            <option value="file">Use Webcam</option>
+            <option value="webcam">Webcam</option>
+        </select>
+
+        <h1 class="hide-on-mobile">(OR)</h1>
+        <!-- Add this inside the fileUploadContainer div -->
+        <div id="fileUploadContainer" class="optionContainer">
+            <div class="file-upload-wrapper">
+                <label for="fileInput" class="file-upload-label">
+                    <span class="upload-icon">📁</span>
+                    Choose File
+                    <input type="file" id="fileInput" accept=".jpeg,.jpg" hidden>
+                </label>
+                <span class="file-name" id="fileName">No file chosen</span>
+            </div>
+            <small class="file-type-note">Only JPEG/JPG files are allowed</small>
+            <button id="uploadButton" class="btn">Analyze Image</button>
+            <img id="analyzedImage" class="web3-image-frame" alt="Analyzed Image Preview">
+        </div>
+
+        <div id="webcamContainer" class="optionContainer" style="display: none; position: relative; min-height: 480px;">
+            <video id="webcam" autoplay muted></video>
+            <canvas id="captureCanvas"></canvas>
+            <!-- Tracking Overlay -->
+            <div id="trackingOverlay"></div>
+        </div>
+
+        <div id="webcamControls" class="button-group" style="display: none;">
+            <button id="captureButton" class="btn">Capture</button>
+            <button id="recaptureButton" class="btn" style="display: none;">Recapture</button>
+        </div>
+
+
+        <div id="results">
+            <h2>Results</h2>
+            <pre id="resultOutput">No analysis yet.</pre>
+        </div>
+        <!-- Add after results div -->
+        </div>
+
+        <!-- Tips Section -->
+        <section id="tips" class="web3-section">
+            <h2 class="section-title">Tips for Better Results</h2>
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <div class="tip-icon">💡</div>
+                    <h3>Lighting Matters</h3>
+                    <p>Use even frontal lighting - avoid shadows on your face from side lights or overhead lighting.</p>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-icon">📷</div>
+                    <h3>Camera Position</h3>
+                    <p>Keep camera at eye level, 2-3 feet away. Ensure your face is centered in the frame.</p>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-icon">😐</div>
+                    <h3>Neutral Expression</h3>
+                    <p>Maintain a relaxed, neutral expression with eyes open and mouth closed for accurate analysis.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="web3-section">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>How does the analysis work?</span>
+                        <div class="faq-toggle">▾</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our AI uses 468 facial landmarks with neural networks to measure symmetry ratios across multiple facial features.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Is my data secure?</span>
+                        <div class="faq-toggle">▾</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>All processing happens locally in your browser - we never store or transmit your images.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>What's considered "perfect" symmetry?</span>
+                        <div class="faq-toggle">▾</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Natural faces typically show 79-95% symmetry. Scores above 97% are extremely rare and considered mathematically perfect.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    </div>
+    <!-- Add these scripts before your existing script tag -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
