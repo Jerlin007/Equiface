@@ -1,5 +1,11 @@
 FROM python:3-alpine AS builder
- 
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    && rm -rf /var/lib/apt/lists/*
+
+
 WORKDIR /app
  
 RUN python3 -m venv venv
