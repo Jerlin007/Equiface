@@ -167,7 +167,7 @@ function handleCapture() {
         showLoading();
         const formData = new FormData();
         formData.append("file", blob, "capture.jpg");
-        fetch("/upload", { method: "POST", body: formData })
+        fetch("/upload", { method: "POST", body: formData, signal: AbortSignal.timeout(3000)})
             .then(response => response.json())
             .then(data => {
                 hideLoading();
