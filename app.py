@@ -142,10 +142,8 @@ def upload():
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No selected file"})
-
-    # Optionally, if you want to support more file types, add them here
-    allowed_extensions = ('.jpeg', '.jpg')
-    if file and file.filename.lower().endswith(allowed_extensions):
+    
+    if file and file.filename.lower().endswith(('.jpeg', '.jpg')):
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         
         try:
@@ -154,22 +152,22 @@ def upload():
             return jsonify({"error": f"Error saving file: {str(e)}"})
         
         try:
-            # Run your analysis on the uploaded image
+            # Preprocess and analyze the image
+            preprocess_image(file_path)
             results = analyze_symmetry_mediapipe(file_path)
         except Exception as e:
-            # If an error occurs during analysis, return it to the client
             return jsonify({"error": f"Error in analyzing image: {str(e)}"})
         finally:
-            # Delete the file after processing (even if analysis failed)
+            # Remove the file regardless of success or error
             try:
                 os.remove(file_path)
             except Exception as remove_err:
-                # Optionally, log this error. Do not send it to the client.
                 print("Error deleting file:", remove_err)
         
         return jsonify(results)
     
     return jsonify({"error": "Invalid file type"})
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
