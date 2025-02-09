@@ -8,7 +8,7 @@ import numpy as np
 
 app = Flask(__name__)
 CORS(app)
-UPLOAD_FOLDER = 'static/uploads'
+UPLOAD_FOLDER = '/tmp/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Ensure upload folder exists
@@ -138,22 +138,34 @@ def index():
 def upload():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"})
+    
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No selected file"})
 
-    if file and file.filename.lower().endswith(('.jpeg', '.jpg')):
+    # Optionally, if you want to support more file types, add them here
+    allowed_extensions = ('.jpeg', '.jpg')
+    if file and file.filename.lower().endswith(allowed_extensions):
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        file.save(file_path)
         
-        # Preprocessing: Image rotation/flip corrections and resolution check
         try:
-             # Preprocess the image (only reorient if needed and then resize)
-            preprocess_image(file_path)
-            # Proceed with your analysis function
+            file.save(file_path)
+        except Exception as e:
+            return jsonify({"error": f"Error saving file: {str(e)}"})
+        
+        try:
+            # Run your analysis on the uploaded image
             results = analyze_symmetry_mediapipe(file_path)
         except Exception as e:
+            # If an error occurs during analysis, return it to the client
             return jsonify({"error": f"Error in analyzing image: {str(e)}"})
+        finally:
+            # Delete the file after processing (even if analysis failed)
+            try:
+                os.remove(file_path)
+            except Exception as remove_err:
+                # Optionally, log this error. Do not send it to the client.
+                print("Error deleting file:", remove_err)
         
         return jsonify(results)
     
