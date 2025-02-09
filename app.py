@@ -6,6 +6,29 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
+
+from gunicorn.app.base import BaseApplication
+
+class FlaskApplication(BaseApplication):
+    def __init__(self, app, options=None):
+        self.options = options or {}
+        self.application = app
+        super().__init__()
+
+    def load_config(self):
+        for key, value in self.options.items():
+            self.cfg.set(key, value)
+
+    def load(self):
+        # Preload models before worker fork
+        _ = mp.solutions.face_mesh.FaceMesh(
+            static_image_mode=True,
+            max_num_faces=1,
+            refine_landmarks=True,
+            min_detection_confidence=0.5
+        )
+        return self.application
+
 app = Flask(__name__)
 CORS(app)
 UPLOAD_FOLDER = '/tmp/uploads'
@@ -16,7 +39,12 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Initialize MediaPipe Face Mesh
 mp_face_mesh = mp.solutions.face_mesh
-face_mesh = mp_face_mesh.FaceMesh()
+face_mesh = mp_face_mesh.FaceMesh(
+    static_image_mode=True,
+    max_num_faces=1,
+    refine_landmarks=True,
+    min_detection_confidence=0.5
+)
 
 from PIL import Image, ImageOps
 
@@ -55,7 +83,7 @@ def preprocess_image(image_path):
             img = img.convert("RGB")
         
         # Resize the image to the target resolution 310x413
-        img = img.resize((310, 413))
+        img = img.resize((224, 224))
         
         # Save the processed image back to the same path
         img.save(image_path)
@@ -63,6 +91,9 @@ def preprocess_image(image_path):
 
 
 def analyze_symmetry_mediapipe(image_path):
+        # Add at the start of the function
+    import gc
+    gc.collect()
 
     """
     Analyze facial symmetry using MediaPipe after preprocessing the image.
@@ -126,7 +157,9 @@ def analyze_symmetry_mediapipe(image_path):
         "horizontal_symmetry": horizontal_symmetry,
         "overall": overall_symmetry
     }
-
+    # Add before return
+    del image, image_rgb, results
+    gc.collect()
     return results
 
 @app.route("/", methods=["GET"])
