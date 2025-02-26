@@ -769,7 +769,7 @@ pre {
         backdrop-filter: blur(15px);
         flex-direction: column;
         padding: 6rem 2rem;
-        transform: translateX(100%); /* Hide off-screen using transform */
+        transform: translateX(150%); /* Hide off-screen using transform */
         transition: right 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         border-left: 1px solid rgba(0, 255, 255, 0.1);
         box-shadow: -4px 0 20px rgba(0, 255, 255, 0.05);
