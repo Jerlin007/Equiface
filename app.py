@@ -31,7 +31,7 @@ class FlaskApplication(BaseApplication):
         return self.application
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/upload": {"origins": "https://your-domain.com"}})
 UPLOAD_BUCKET = 'my-ml-app-bucket'  # Replace with your bucket name
 app.config['UPLOAD_BUCKET'] = UPLOAD_BUCKET
 
