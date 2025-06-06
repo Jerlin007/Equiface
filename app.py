@@ -5,7 +5,8 @@ from PIL import Image, ImageOps
 import cv2
 import mediapipe as mp
 import numpy as np
-
+from google.cloud import storage
+from google.cloud.exceptions import GoogleCloudError
 
 from gunicorn.app.base import BaseApplication
 
@@ -31,11 +32,14 @@ class FlaskApplication(BaseApplication):
 
 app = Flask(__name__)
 CORS(app)
-UPLOAD_FOLDER = '/tmp/uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+UPLOAD_BUCKET = 'my-ml-app-bucket'  # Replace with your bucket name
+app.config['UPLOAD_BUCKET'] = UPLOAD_BUCKET
 
-# Ensure upload folder exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# Ensure upload folder exists locally for temp processing
+os.makedirs('/tmp/uploads', exist_ok=True)
+
+# Initialize Cloud Storage client
+storage_client = storage.Client()
 
 # Initialize MediaPipe Face Mesh
 mp_face_mesh = mp.solutions.face_mesh
@@ -162,10 +166,6 @@ def analyze_symmetry_mediapipe(image_path):
     gc.collect()
     return results
 
-@app.route("/", methods=["GET"])
-def index():
-    return render_template("/index.html")
-
 @app.route("/upload", methods=["POST"])
 def upload():
     if 'file' not in request.files:
@@ -176,30 +176,39 @@ def upload():
         return jsonify({"error": "No selected file"})
     
     if file and file.filename.lower().endswith(('.jpeg', '.jpg')):
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        # Save temporarily locally
+        file_path = os.path.join('/tmp/uploads', file.filename)
         
         try:
             file.save(file_path)
-        except Exception as e:
-            return jsonify({"error": f"Error saving file: {str(e)}"})
-        
-        try:
-            # Preprocess and analyze the image
+            
+            # Upload to Cloud Storage
+            bucket = storage_client.bucket(app.config['UPLOAD_BUCKET'])
+            blob = bucket.blob(f"uploads/{file.filename}")
+            blob.upload_from_filename(file_path)
+            
+            # Preprocess and analyze
             preprocess_image(file_path)
             results = analyze_symmetry_mediapipe(file_path)
+        except GoogleCloudError as e:
+            return jsonify({"error": f"Cloud Storage error: {str(e)}"})
         except Exception as e:
             return jsonify({"error": f"Error in analyzing image: {str(e)}"})
         finally:
-            # Remove the file regardless of success or error
+            # Clean up local file
             try:
                 os.remove(file_path)
             except Exception as remove_err:
                 print("Error deleting file:", remove_err)
+            # Optionally delete from Cloud Storage if not needed
+            try:
+                blob.delete()
+            except Exception as delete_err:
+                print("Error deleting from Cloud Storage:", delete_err)
         
         return jsonify(results)
     
     return jsonify({"error": "Invalid file type"})
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
