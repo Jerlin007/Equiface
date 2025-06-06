@@ -21,3 +21,6 @@ EXPOSE 8080
 
 # Run with Gunicorn for better performance in production
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "120", "app:app"]
+# Copy service account key (optional: use Cloud Run secrets instead)
+COPY key.json /app/key.json
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/key.json
